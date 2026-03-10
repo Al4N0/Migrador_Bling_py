@@ -258,6 +258,14 @@ class Database:
     def create_contatos_tables(self):
         """Cria as tabelas de contatos que espelham o JSON do Bling."""
 
+        # Tabela Tipos de Contato (Lista Mestre)
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS tipos_contato (
+                id BIGINT PRIMARY KEY,
+                descricao VARCHAR(255)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """)
+
         # Tabela principal: contatos
         self.execute("""
             CREATE TABLE IF NOT EXISTS contatos (
@@ -310,17 +318,6 @@ class Database:
                 atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 INDEX idx_nome (nome),
                 INDEX idx_documento (numero_documento)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-        """)
-
-        # Tabela filha: contato_tipos (array tiposContato)
-        self.execute("""
-            CREATE TABLE IF NOT EXISTS contato_tipos (
-                contato_id BIGINT NOT NULL,
-                tipo_id BIGINT NOT NULL,
-                descricao VARCHAR(100),
-                PRIMARY KEY (contato_id, tipo_id),
-                FOREIGN KEY (contato_id) REFERENCES contatos(id) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         """)
 

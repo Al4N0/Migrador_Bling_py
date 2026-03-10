@@ -123,9 +123,30 @@ class App(ctk.CTk):
         except Exception as e:
             self.after(0, lambda: self.log(f"❌ Erro na migração: {e}"))
         finally:
+            # Salva o log após finalizar a migração
+            self.after(0, lambda: self._save_log_to_file("contatos.log"))
             # Reabilita botões (via after para ser thread-safe)
             self.after(0, lambda: self.btn_connect.configure(state="normal"))
             self.after(0, lambda: self.btn_contatos.configure(state="normal"))
+
+    def _save_log_to_file(self, filename: str):
+        """Salva o conteúdo da caixa de texto do log na pasta logs."""
+        import os
+        try:
+            log_content = self.txt_log.get("1.0", "end-1c")
+            
+            # Cria a pasta 'logs' na raiz se não existir
+            logs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+            os.makedirs(logs_dir, exist_ok=True)
+            
+            # Caminho completo do arquivo
+            filepath = os.path.join(logs_dir, filename)
+            
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write(log_content)
+            self.log(f"📄 Arquivo de log salvo com sucesso em: logs/{filename}")
+        except Exception as e:
+            self.log(f"❌ Falha ao salvar arquivo de log: {e}")
 
     def _safe_progress(self, current: int, total: int, message: str):
         """Chama update_progress de forma thread-safe."""

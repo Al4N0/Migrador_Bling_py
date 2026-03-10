@@ -44,6 +44,30 @@ class ContatosMigrator:
             return response["data"]         # Dict com todas as informações
         return None
 
+    def _fetch_contact_types(self) -> list[dict]:
+        """
+        GET {{baseUrl}}/contatos/tipos
+        Retorna a lista mestre de tipos de contato.
+        """
+        endpoint = "/contatos/tipos"
+        response = self.api.request(endpoint)
+
+        if response and "data" in response:
+            return response["data"]
+        return []
+
+    def _save_contact_type(self, data: dict):
+        """Grava o tipo de contato no MySQL."""
+        self.db.execute("""
+            INSERT INTO tipos_contato (id, descricao)
+            VALUES (%s, %s)
+            ON DUPLICATE KEY UPDATE
+                descricao = VALUES(descricao)
+        """, (
+            data.get("id"),
+            data.get("descricao")
+        ))
+
     def _save_contact(self, data: dict):
         """Grava contato no MySQL (INSERT ON DUPLICATE KEY UPDATE)."""
 
@@ -200,8 +224,22 @@ class ContatosMigrator:
                 self.db.rollback()
                 logger.error(f"Erro ao gravar contato {rec['id']}: {e}") 
 
+        # ========== FASE 3: Migrar Tipos de Contato ==========
+        self._report_progress(total, total, "Fase 3: Migrando Tipos de Contato (Mestre)...")
+        contact_types = self._fetch_contact_types()
+        types_processed = 0
+
+        for ct in contact_types:
+            try:
+                self._save_contact_type(ct)
+                self.db.commit()
+                types_processed += 1
+            except Exception as e:
+                self.db.rollback()
+                logger.error(f"Erro ao gravar tipo de contato {ct.get('id')}: {e}")
+
         self._report_progress(total, total,
-            f"Migração concluída! {processed} contatos processados")   
+            f"Migração concluída! {processed} contatos e {types_processed} tipos processados")   
         return processed            
                 
          
