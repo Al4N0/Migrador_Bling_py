@@ -2,6 +2,7 @@ import customtkinter as ctk
 import threading
 from core import BlingAPI, Database
 from migrator import ContatosMigrator
+from produtos_migrator import ProdutosMigrator
 
 # Classe da janela principal
 class App(ctk.CTk):
@@ -42,7 +43,11 @@ class App(ctk.CTk):
         self.btn_connect.pack(fill="x", padx=20, pady=10)
         self.btn_contatos = ctk.CTkButton(self.sidebar_frame, text="👥 Migrar Contatos", command=self.on_migrate_contatos, state="disabled")
         self.btn_contatos.pack(fill="x", padx=20, pady=10)
-        # Futuros botões de Produtos e Pedidos entrarão aqui!
+        
+        self.btn_produtos = ctk.CTkButton(self.sidebar_frame, text="📦 Migrar Produtos", command=self.on_migrate_produtos, state="disabled")
+        self.btn_produtos.pack(fill="x", padx=20, pady=10)
+        
+        # Futuros botões de Pedidos entrarão aqui!
         # ----- ITENS DA ÁREA PRINCIPAL (Direita) -----
         # Status e Progresso
         self.lbl_status = ctk.CTkLabel(self.main_frame, text="Aguardando conexão...", font=("", 14, "bold"))
@@ -91,6 +96,7 @@ class App(ctk.CTk):
 
             # Habilita os botões de migração
             self.btn_contatos.configure(state="normal")
+            self.btn_produtos.configure(state="normal")
             self.update_status("Conectado! Pronto para migrar.")
 
         except Exception as e:
@@ -102,6 +108,7 @@ class App(ctk.CTk):
         # Desabilita os botões durante a migração
         self.btn_connect.configure(state="disabled")
         self.btn_contatos.configure(state="disabled")
+        self.btn_produtos.configure(state="disabled")
         self.progress.set(0)
 
         # Roda em thread separada para não travar a interface
@@ -126,6 +133,35 @@ class App(ctk.CTk):
             # Reabilita botões (via after para ser thread-safe)
             self.after(0, lambda: self.btn_connect.configure(state="normal"))
             self.after(0, lambda: self.btn_contatos.configure(state="normal"))
+            self.after(0, lambda: self.btn_produtos.configure(state="normal"))
+
+    def on_migrate_produtos(self):
+        """Inicia a migração de produtos em thread separada."""
+        self.btn_connect.configure(state="disabled")
+        self.btn_contatos.configure(state="disabled")
+        self.btn_produtos.configure(state="disabled")
+        self.progress.set(0)
+
+        thread = threading.Thread(target=self._run_produtos_migration, daemon=True)
+        thread.start()
+
+    def _run_produtos_migration(self):
+        """Execute a migração de produtos (roda na thread)."""
+        try:
+            migrator = ProdutosMigrator(
+                api=self.api,
+                db=self.db,
+                on_progress=self._safe_progress,
+            )               
+            total = migrator.execute()
+            self.after(0, lambda: self.log(f"🎉 Migração de Produtos finalizada! {total} processados"))
+        except Exception as e:
+            self.after(0, lambda: self.log(f"❌ Erro na migração de produtos: {e}"))
+        finally:
+            self.after(0, lambda: self._save_log_to_file("produtos.log"))
+            self.after(0, lambda: self.btn_connect.configure(state="normal"))
+            self.after(0, lambda: self.btn_contatos.configure(state="normal"))
+            self.after(0, lambda: self.btn_produtos.configure(state="normal"))
 
     def _save_log_to_file(self, filename: str):
         """Salva o conteúdo da caixa de texto do log na pasta logs."""

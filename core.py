@@ -323,3 +323,63 @@ class Database:
 
         self.commit()
         logger.success("Tabelas de contatos criadas/verificadas")
+
+    def create_produtos_tables(self):
+        """Cria a tabela de produtos que espelha o JSON do Bling."""
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS produtos (
+                id BIGINT PRIMARY KEY,
+                idProdutoPai BIGINT,
+                nome VARCHAR(255),
+                codigo VARCHAR(100),
+                preco DECIMAL(15,2),
+                precoCusto DECIMAL(15,2),
+                tipo VARCHAR(1),
+                situacao VARCHAR(1),
+                formato VARCHAR(1),
+                descricaoCurta TEXT,
+                dataValidade DATE NULL,
+                unidade VARCHAR(20),
+                pesoLiquido DECIMAL(15,4),
+                pesoBruto DECIMAL(15,4),
+                volumes INT,
+                itensPorCaixa INT,
+                gtin VARCHAR(50),
+                gtinEmbalagem VARCHAR(50),
+                tipoProducao VARCHAR(1),
+                condicao INT,
+                freteGratis BOOLEAN,
+                marca VARCHAR(255),
+                descricaoComplementar TEXT,
+                linkExterno VARCHAR(255),
+                observacoes TEXT,
+                descricaoEmbalagemDiscreta VARCHAR(255),
+                categoria_id BIGINT,
+                fornecedor_id BIGINT,
+                categoria JSON,
+                fornecedor JSON,
+                actionEstoque VARCHAR(50),
+                artigoPerigoso BOOLEAN,
+                -- Objetos Complexos como JSON
+                dimensoes JSON,
+                tributacao JSON,
+                midia JSON,
+                linhaProduto JSON,
+                estrutura JSON,
+                camposCustomizados JSON,
+                variacoes JSON,
+                variacao JSON,
+                estoque JSON,
+                -- JSON completo
+                json_completo JSON,
+                migrado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+                atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_nome (nome),
+                INDEX idx_codigo (codigo),
+                INDEX idx_situacao (situacao),
+                INDEX idx_idProdutoPai (idProdutoPai)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """)
+        self.commit()
+        logger.success("Tabela de produtos criada/verificada")
+
