@@ -10,51 +10,49 @@ class App(ctk.CTk):
 
         # Configuração da janela
         self.title("Migrador ETL Bling -> MySQL")     
-        self.geometry("700x500")
+        self.geometry("700x500")     
         ctk.set_appearance_mode("dark")  # Dark Mode!
         ctk.set_default_color_theme("blue")
+        
 
         # Variáveis de estado
         self.api = None       # BlingAPI (Criado ao conectar)  
         self.db = None        # Database (Criado ao conectar)
 
-        # Linha 1: Campo do banco de destino
-        self.frame_top = ctk.CTkFrame(self)
-        self.frame_top.pack(fill="x", padx=10, pady=(10, 5))
-
-        self.lbl_banco = ctk.CTkLabel(self.frame_top, text="Banco de Destino:")
-        self.lbl_banco.pack(side="left", padx=5)
-
-        self.entry_banco = ctk.CTkEntry(self.frame_top, width=250,
-                                        placeholder_text="Nome do banco MySQL")
-        self.entry_banco.pack(side="left", padx=5)
-        self.entry_banco.insert(0, "bling_staging")    # Nome padrão
-
-        # Linha 2: Botões
-        self.frame_buttons = ctk.CTkFrame(self)
-        self.frame_buttons.pack(fill="x", padx=10, pady=5)
-
-        self.btn_connect = ctk.CTkButton(self.frame_buttons, text="Conectar DB",
-                                        command=self.on_connect)
-        self.btn_connect.pack(side="left", padx=5)
-
-        self.btn_contatos = ctk.CTkButton(self.frame_buttons, text="Migrar Contatos",
-                                        command=self.on_migrate_contatos,
-                                        state="disabled")
-        self.btn_contatos.pack(side="left", padx=5)
-
-        # Status + Progresso
-        self.lbl_status = ctk.CTkLabel(self, text="Aguardando conexão...",
-                                        font=("", 13, "bold"))
-        self.lbl_status.pack(padx=10, pady=5, anchor="w") 
-
-        self.progress = ctk.CTkProgressBar(self)
-        self.progress.pack(fill="x", padx=10, pady=5)
+        # 1. BARRA LATERAL (Esquerda)
+        self.sidebar_frame = ctk.CTkFrame(self, width=200, corner_radius=0)
+        self.sidebar_frame.pack(side="left", fill="y")
+        self.sidebar_frame.pack_propagate(False) # Impede que a barra encolha
+        
+        # 2. ÁREA PRINCIPAL (Direita)
+        self.main_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.main_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10)
+        
+        # ----- ITENS DA BARRA LATERAL (Esquerda) -----
+        self.lbl_titulo = ctk.CTkLabel(self.sidebar_frame, text="MENU", font=("", 18, "bold"))
+        self.lbl_titulo.pack(pady=(20, 20)) # Margem superior/inferior
+        # Campo do Banco
+        self.lbl_banco = ctk.CTkLabel(self.sidebar_frame, text="Banco MySQL:", anchor="w")
+        self.lbl_banco.pack(fill="x", padx=20, pady=(10, 0))
+        self.entry_banco = ctk.CTkEntry(self.sidebar_frame, placeholder_text="Nome do banco")
+        self.entry_banco.pack(fill="x", padx=20, pady=(0, 20))
+        self.entry_banco.insert(0, "bling_staging")
+        # Botões
+        self.btn_connect = ctk.CTkButton(self.sidebar_frame, text="🔌 Conectar DB", command=self.on_connect)
+        self.btn_connect.pack(fill="x", padx=20, pady=10)
+        self.btn_contatos = ctk.CTkButton(self.sidebar_frame, text="👥 Migrar Contatos", command=self.on_migrate_contatos, state="disabled")
+        self.btn_contatos.pack(fill="x", padx=20, pady=10)
+        # Futuros botões de Produtos e Pedidos entrarão aqui!
+        # ----- ITENS DA ÁREA PRINCIPAL (Direita) -----
+        # Status e Progresso
+        self.lbl_status = ctk.CTkLabel(self.main_frame, text="Aguardando conexão...", font=("", 14, "bold"))
+        self.lbl_status.pack(anchor="w", pady=(0, 5)) 
+        self.progress = ctk.CTkProgressBar(self.main_frame)
+        self.progress.pack(fill="x", pady=(0, 15))
         self.progress.set(0)
-
-        # Log
-        self.txt_log = ctk.CTkTextbox(self, height=250)
-        self.txt_log.pack(fill="both", expand=True, padx=10, pady=(5,10))
+        # Log de texto grande
+        self.txt_log = ctk.CTkTextbox(self.main_frame, font=("Consolas", 12))
+        self.txt_log.pack(fill="both", expand=True)
 
     def log(self, message: str):
         """Adiciona mensagem ao log com timestamp."""
