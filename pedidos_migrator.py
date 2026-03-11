@@ -212,6 +212,9 @@ class PedidosMigrator:
         total = len(all_ids)
         self._report_progress(0, total, f"Fase 1 concluída: {total} pedidos encontrados")
 
+        # Inverter a ordem para migrar do mais antigo para o mais novo
+        all_ids.reverse()
+
         # ========== FASE 2: Buscar detalhes e gravar ==========
         processed = 0
 
