@@ -383,3 +383,84 @@ class Database:
         self.commit()
         logger.success("Tabela de produtos criada/verificada")
 
+    def create_pedidos_tables(self):
+        """Cria a tabela de pedidos de venda que espelha o JSON do Bling."""
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS pedidos (
+                id BIGINT PRIMARY KEY,
+                numero INT,
+                numeroLoja VARCHAR(100),
+                data DATE,
+                dataSaida DATE,
+                dataPrevista DATE NULL,
+                totalProdutos DECIMAL(15,2),
+                total DECIMAL(15,2),
+                
+                contato_id BIGINT,
+                contato_nome VARCHAR(255),
+                contato_tipoPessoa VARCHAR(1),
+                contato_numeroDocumento VARCHAR(50),
+                
+                situacao_id INT,
+                situacao_valor INT,
+                
+                loja_id BIGINT,
+                unidadeNegocio_id BIGINT,
+                
+                numeroPedidoCompra VARCHAR(100),
+                outrasDespesas DECIMAL(15,2),
+                observacoes TEXT,
+                observacoesInternas TEXT,
+                
+                categoria_id BIGINT,
+                notaFiscal_id BIGINT,
+                vendedor_id BIGINT,
+                
+                -- Arrays e Objetos em JSON nativos
+                desconto JSON,
+                tributacao JSON,
+                parcelas JSON,
+                transporte JSON,
+                intermediador JSON,
+                taxas JSON,
+                
+                json_completo JSON,
+                migrado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+                atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                
+                INDEX idx_numero (numero),
+                INDEX idx_data (data),
+                INDEX idx_contato_id (contato_id),
+                INDEX idx_situacao_id (situacao_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """)
+        
+        # Tabela para os Itens do Pedido (Filha)
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS pedidos_itens (
+                id BIGINT PRIMARY KEY,
+                pedido_id BIGINT NOT NULL,
+                codigo VARCHAR(100),
+                unidade VARCHAR(20),
+                quantidade DECIMAL(15,4),
+                desconto DECIMAL(15,2),
+                valor DECIMAL(15,2),
+                aliquotaIPI DECIMAL(5,2),
+                descricao TEXT,
+                descricaoDetalhada TEXT,
+                produto_id BIGINT,
+                comissao_base DECIMAL(15,2),
+                comissao_aliquota DECIMAL(5,2),
+                comissao_valor DECIMAL(15,2),
+                naturezaOperacao_id BIGINT,
+                
+                INDEX idx_pedido_id (pedido_id),
+                INDEX idx_produto_id (produto_id),
+                CONSTRAINT fk_pedido_item FOREIGN KEY (pedido_id) 
+                    REFERENCES pedidos(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """)
+        self.commit()
+        logger.success("Tabela de pedidos criada/verificada")
+
+
