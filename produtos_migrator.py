@@ -9,10 +9,11 @@ from core import BlingAPI, Database
 class ProdutosMigrator:
     """Migrador de Produtos da API Bling V3 para MySQL"""
 
-    def __init__(self, api: BlingAPI, db: Database, on_progress=None):
+    def __init__(self, api: BlingAPI, db: Database, on_progress=None, pause_event=None):
         self.api = api
         self.db = db
         self.on_progress = on_progress
+        self.pause_event = pause_event
 
     def _report_progress(self, current: int, total: int, message: str):
         """Notifica a interface sobre o progresso da migração."""
@@ -180,6 +181,9 @@ class ProdutosMigrator:
         self._report_progress(0, 0, "Fase 1: Coletando lista de produtos...")
 
         while True:
+            if self.pause_event:
+                self.pause_event.wait()
+                
             self._report_progress(len(all_ids), 0, f"Coletando página {page}...")
             produtos = self._fetch_produto_list(page)
 
@@ -223,6 +227,8 @@ class ProdutosMigrator:
             try:
                 self._save_produto(details, id_produto_pai_fase1=rec.get("idProdutoPai"))
                 self.db.commit()
+                if self.pause_event:
+                    self.pause_event.wait()
                 processed += 1
             except Exception as e:
                 self.db.rollback()

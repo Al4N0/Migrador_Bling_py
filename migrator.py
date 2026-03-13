@@ -10,10 +10,11 @@ from core import BlingAPI, Database
 class ContatosMigrator:
     """Migrador de Contatos da API Bling V3 para MySQL"""
 
-    def __init__(self, api: BlingAPI, db: Database, on_progress=None):
+    def __init__(self, api: BlingAPI, db: Database, on_progress=None, pause_event=None):
         self.api = api
         self.db = db
         self.on_progress = on_progress
+        self.pause_event = pause_event
 
     def _report_progress(self, current: int, total: int, message: str):
         """Notifica a interface sobre o progresso da migração."""
@@ -184,6 +185,9 @@ class ContatosMigrator:
         self._report_progress(0, 0, "Fase 1: Coletando lista de contatos...")
 
         while True:
+            if self.pause_event:
+                self.pause_event.wait()
+                
             self._report_progress(len(all_ids), 0, f"Coletando página {page}...")
             contacts = self._fetch_contact_list(page)
 
@@ -219,6 +223,8 @@ class ContatosMigrator:
             try:
                 self._save_contact(details)
                 self.db.commit()
+                if self.pause_event:
+                    self.pause_event.wait()
                 processed += 1
             except Exception as e:
                 self.db.rollback()
@@ -233,6 +239,8 @@ class ContatosMigrator:
             try:
                 self._save_contact_type(ct)
                 self.db.commit()
+                if self.pause_event:
+                    self.pause_event.wait()
                 types_processed += 1
             except Exception as e:
                 self.db.rollback()

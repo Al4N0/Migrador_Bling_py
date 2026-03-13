@@ -377,9 +377,300 @@ class Database:
                 INDEX idx_nome (nome),
                 INDEX idx_codigo (codigo),
                 INDEX idx_situacao (situacao),
-                INDEX idx_idProdutoPai (idProdutoPai)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         """)
         self.commit()
         logger.success("Tabela de produtos criada/verificada")
+
+    def create_pedidos_venda_tables(self):
+        """Cria as tabelas de pedidos de venda (cabeçalho, itens e parcelas) espelhando o JSON do Bling."""
+        
+        # Tabela Pedido de Venda (Cabeçalho)
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS pedido (
+                id BIGINT PRIMARY KEY,
+                numero INT,
+                numeroLoja VARCHAR(50),
+                data DATE NULL,
+                dataSaida DATE NULL,
+                dataPrevista DATE NULL,
+                totalProdutos DECIMAL(15,2),
+                total DECIMAL(15,2),
+                contato_id BIGINT,
+                contato_nome VARCHAR(255),
+                contato_tipoPessoa VARCHAR(5),
+                contato_numeroDocumento VARCHAR(20),
+                situacao_id INT,
+                situacao_valor INT,
+                loja_id BIGINT,
+                loja_unidadeNegocio_id BIGINT,
+                numeroPedidoCompra VARCHAR(50),
+                outrasDespesas DECIMAL(15,2),
+                observacoes TEXT,
+                observacoesInternas TEXT,
+                desconto_valor DECIMAL(15,2),
+                desconto_unidade VARCHAR(20),
+                categoria_id BIGINT,
+                notaFiscal_id BIGINT,
+                tributacao_totalICMS DECIMAL(15,2),
+                tributacao_totalIPI DECIMAL(15,2),
+                transporte JSON,
+                vendedor_id BIGINT,
+                intermediador JSON,
+                taxas JSON,
+                -- JSON backup + timestamps
+                json_completo JSON,
+                migrado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+                atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_data (data),
+                INDEX idx_contato_id (contato_id),
+                INDEX idx_situacao_id (situacao_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """)
+
+        # Tabela Pedido Item
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS pedido_item (
+                id BIGINT PRIMARY KEY,
+                pedido_id BIGINT,
+                codigo VARCHAR(100),
+                unidade VARCHAR(20),
+                quantidade DECIMAL(15,4),
+                desconto DECIMAL(15,2),
+                valor DECIMAL(15,2),
+                aliquotaIPI DECIMAL(15,2),
+                descricao TEXT,
+                descricaoDetalhada TEXT,
+                produto_id BIGINT,
+                comissao_base DECIMAL(15,2),
+                comissao_aliquota DECIMAL(15,2),
+                comissao_valor DECIMAL(15,2),
+                naturezaOperacao_id BIGINT,
+                -- JSON backup
+                json_completo JSON,
+                INDEX idx_pedido_id (pedido_id),
+                INDEX idx_produto_id (produto_id),
+                FOREIGN KEY (pedido_id) REFERENCES pedido(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """)
+
+        # Tabela Pedido Parcela
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS pedido_parcela (
+                id BIGINT PRIMARY KEY,
+                pedido_id BIGINT,
+                dataVencimento DATE NULL,
+                valor DECIMAL(15,2),
+                observacoes TEXT,
+                caut VARCHAR(255),
+                formaPagamento_id BIGINT,
+                -- JSON backup
+                json_completo JSON,
+                INDEX idx_pedido_id (pedido_id),
+                FOREIGN KEY (pedido_id) REFERENCES pedido(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """)
+
+        self.commit()
+        logger.success("Tabelas de pedidos de venda criadas/verificadas")
+
+    def create_vendedores_tables(self):
+        """Cria a tabela de vendedores espelhando o JSON do Bling."""
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS vendedor (
+                id BIGINT PRIMARY KEY,
+                descontoLimite DECIMAL(15,2),
+                loja_id BIGINT,
+                contato_id BIGINT,
+                contato_nome VARCHAR(255),
+                contato_situacao VARCHAR(1),
+                comissoes JSON,
+                -- JSON backup + timestamps
+                json_completo JSON,
+                migrado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+                atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_contato_id (contato_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """)
+        self.commit()
+        logger.success("Tabela de vendedores criada/verificada")
+
+    def create_contas_receber_tables(self):
+        """Cria a tabela de contas a receber espelhando o JSON do Bling."""
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS conta_receber (
+                id BIGINT PRIMARY KEY,
+                situacao INT,
+                vencimento DATE NULL,
+                valor DECIMAL(15,2),
+                idTransacao VARCHAR(255),
+                linkQRCodePix TEXT,
+                linkBoleto TEXT,
+                dataEmissao DATE NULL,
+                contato_id BIGINT,
+                contato_nome VARCHAR(255),
+                contato_numeroDocumento VARCHAR(50),
+                contato_tipo VARCHAR(10),
+                formaPagamento_id BIGINT,
+                contaContabil_id BIGINT,
+                origem_id BIGINT,
+                origem_tipoOrigem VARCHAR(50),
+                saldo DECIMAL(15,2),
+                vencimentoOriginal DATE NULL,
+                numeroDocumento VARCHAR(100),
+                competencia DATE NULL,
+                historico TEXT,
+                numeroBanco VARCHAR(100),
+                portador_id BIGINT,
+                categoria_id BIGINT,
+                vendedor_id BIGINT,
+                ocorrencia_tipo INT,
+                borderos JSON,
+                -- JSON backup + timestamps
+                json_completo JSON,
+                migrado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+                atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_dataEmissao (dataEmissao),
+                INDEX idx_vencimento (vencimento),
+                INDEX idx_contato_id (contato_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """)
+        self.commit()
+        logger.success("Tabela de contas a receber criada/verificada")
+
+    def create_formas_pagamento_tables(self):
+        """Cria a tabela de formas de pagamento espelhando o JSON do Bling."""
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS forma_pagamento (
+                id BIGINT PRIMARY KEY,
+                descricao VARCHAR(255),
+                tipoPagamento INT,
+                situacao INT,
+                fixa BOOLEAN,
+                padrao INT,
+                finalidade INT,
+                juros DECIMAL(15,4),
+                multa DECIMAL(15,4),
+                condicao VARCHAR(50),
+                destino INT,
+                utilizaDiasUteis BOOLEAN,
+                taxas_aliquota DECIMAL(15,4),
+                taxas_valor DECIMAL(15,4),
+                taxas_prazo INT,
+                dadosCartao_bandeira INT,
+                dadosCartao_tipo INT,
+                dadosCartao_cnpjCredenciadora VARCHAR(50),
+                dadosCartao_autoLiquidacao INT,
+                -- JSON backup + timestamps
+                json_completo JSON,
+                migrado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+                atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """)
+        self.commit()
+        logger.success("Tabela de formas de pagamento criada/verificada")
+
+    def create_notas_fiscais_tables(self):
+        """Cria as tabelas de notas fiscais espelhando o JSON do Bling (cabeçalho, itens e parcelas)."""
+        # Tabela PRINCIPAL (Cabeçalho da Nota Fiscal)
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS nota_fiscal (
+                id BIGINT PRIMARY KEY,
+                tipo INT,
+                situacao INT,
+                numero VARCHAR(50),
+                dataEmissao DATETIME,
+                dataOperacao DATETIME,
+                chaveAcesso VARCHAR(100),
+                contato_id BIGINT,
+                contato_nome VARCHAR(255),
+                contato_numeroDocumento VARCHAR(50),
+                contato_ie VARCHAR(50),
+                contato_rg VARCHAR(50),
+                contato_telefone VARCHAR(50),
+                contato_email VARCHAR(255),
+                contato_endereco_endereco VARCHAR(255),
+                contato_endereco_numero VARCHAR(50),
+                contato_endereco_complemento VARCHAR(100),
+                contato_endereco_bairro VARCHAR(100),
+                contato_endereco_cep VARCHAR(20),
+                contato_endereco_municipio VARCHAR(100),
+                contato_endereco_uf VARCHAR(2),
+                naturezaOperacao_id BIGINT,
+                loja_id BIGINT,
+                serie INT,
+                valorNota DECIMAL(15,4),
+                valorFrete DECIMAL(15,4),
+                xml TEXT,
+                linkDanfe TEXT,
+                linkPDF TEXT,
+                optanteSimplesNacional BOOLEAN,
+                numeroPedidoLoja VARCHAR(50),
+                vendedor_id BIGINT,
+                transporte_fretePorConta INT,
+                transporte_transportador_nome VARCHAR(255),
+                transporte_transportador_numeroDocumento VARCHAR(50),
+                transporte_volumes JSON,
+                transporte_etiqueta_nome VARCHAR(255),
+                transporte_etiqueta_endereco VARCHAR(255),
+                transporte_etiqueta_numero VARCHAR(50),
+                transporte_etiqueta_complemento VARCHAR(100),
+                transporte_etiqueta_municipio VARCHAR(100),
+                transporte_etiqueta_uf VARCHAR(2),
+                transporte_etiqueta_cep VARCHAR(20),
+                transporte_etiqueta_bairro VARCHAR(100),
+                json_completo JSON,
+                migrado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+                atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """)
+
+        # Tabela FILHA (Itens da Nota Fiscal)
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS nota_fiscal_item (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nota_fiscal_id BIGINT,
+                codigo VARCHAR(100),
+                descricao VARCHAR(255),
+                unidade VARCHAR(20),
+                quantidade DECIMAL(15,4),
+                valor DECIMAL(15,4),
+                valorTotal DECIMAL(15,4),
+                tipo VARCHAR(10),
+                pesoBruto DECIMAL(15,4),
+                pesoLiquido DECIMAL(15,4),
+                numeroPedidoCompra VARCHAR(50),
+                classificacaoFiscal VARCHAR(50),
+                cest VARCHAR(50),
+                codigoServico VARCHAR(50),
+                origem INT,
+                informacoesAdicionais TEXT,
+                gtin VARCHAR(50),
+                cfop VARCHAR(20),
+                impostos_valorAproximadoTotalTributos DECIMAL(15,4),
+                impostos_icms_st INT,
+                impostos_icms_origem INT,
+                impostos_icms_modalidade INT,
+                impostos_icms_aliquota DECIMAL(15,4),
+                impostos_icms_valor DECIMAL(15,4),
+                FOREIGN KEY (nota_fiscal_id) REFERENCES nota_fiscal(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """)
+
+        # Tabela FILHA (Parcelas da Nota Fiscal)
+        self.execute("""
+            CREATE TABLE IF NOT EXISTS nota_fiscal_parcela (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nota_fiscal_id BIGINT,
+                data DATE,
+                valor DECIMAL(15,4),
+                observacoes TEXT,
+                caut VARCHAR(100),
+                formaPagamento_id BIGINT,
+                FOREIGN KEY (nota_fiscal_id) REFERENCES nota_fiscal(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """)
+
+        self.commit()
+        logger.success("Tabelas de Notas Fiscais (cabeçalho, itens e parcelas) criadas/verificadas")
 

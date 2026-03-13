@@ -1,0 +1,55 @@
+[23:36:23] API Bling inicializada ✅
+[23:36:23] MySQL Conectado → bling_staging ✅
+[23:36:24] Fase 1: Coletando lista de formas de pagamento...
+[23:36:24] Coletando página 1...
+[23:36:26] ❌ Erro na migração de formas de pagamento: Token de acesso inválido (HTTP 401). Não foi possível renovar automaticamente. Verifique BLING_REFRESH_TOKEN no .env.
+Traceback (most recent call last):
+  File "C:\Users\ALANO\Documents\Embarcadero\Studio\Migradores\Migrador_Bling_py\main.py", line 406, in _run_formas_pagamento_migration
+    total = migrator.execute()
+            ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ALANO\Documents\Embarcadero\Studio\Migradores\Migrador_Bling_py\formas_pagamento_migrator.py", line 123, in execute
+    formas = self._fetch_formas_list(page)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ALANO\Documents\Embarcadero\Studio\Migradores\Migrador_Bling_py\formas_pagamento_migrator.py", line 29, in _fetch_formas_list
+    response = self.api.request(endpoint)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ALANO\Documents\Embarcadero\Studio\Migradores\Migrador_Bling_py\core.py", line 109, in request
+    raise PermissionError(
+PermissionError: Token de acesso inválido (HTTP 401). Não foi possível renovar automaticamente. Verifique BLING_REFRESH_TOKEN no .env.
+
+[23:36:26] 📄 Arquivo de log salvo com sucesso em: logs/formas_pagamento.log
+[23:36:36] Fase 1: Coletando lista de notas fiscais...
+[23:36:36] Coletando página 1...
+[23:36:37] ❌ Erro na migração de notas fiscais: Token de acesso inválido (HTTP 401). Não foi possível renovar automaticamente. Verifique BLING_REFRESH_TOKEN no .env.
+Traceback (most recent call last):
+  File "C:\Users\ALANO\Documents\Embarcadero\Studio\Migradores\Migrador_Bling_py\main.py", line 449, in _run_notas_fiscais_migration
+    total = migrator.execute()
+            ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ALANO\Documents\Embarcadero\Studio\Migradores\Migrador_Bling_py\notas_fiscais_migrator.py", line 224, in execute
+    nfs = self._fetch_nf_list(page)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ALANO\Documents\Embarcadero\Studio\Migradores\Migrador_Bling_py\notas_fiscais_migrator.py", line 26, in _fetch_nf_list
+    response = self.api.request(endpoint)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ALANO\Documents\Embarcadero\Studio\Migradores\Migrador_Bling_py\core.py", line 109, in request
+    raise PermissionError(
+PermissionError: Token de acesso inválido (HTTP 401). Não foi possível renovar automaticamente. Verifique BLING_REFRESH_TOKEN no .env.
+
+[23:36:37] 📄 Arquivo de log salvo com sucesso em: logs/notas_fiscais.log
+[23:36:41] Fase 1: Coletando lista de pedidos de venda...
+[23:36:41] Coletando página 1...
+[23:36:42] ❌ Erro na migração de pedidos: Token de acesso inválido (HTTP 401). Não foi possível renovar automaticamente. Verifique BLING_REFRESH_TOKEN no .env.
+Traceback (most recent call last):
+  File "C:\Users\ALANO\Documents\Embarcadero\Studio\Migradores\Migrador_Bling_py\main.py", line 277, in _run_pedidos_venda_migration
+    total = migrator.execute()
+            ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ALANO\Documents\Embarcadero\Studio\Migradores\Migrador_Bling_py\pedidos_venda_migrator.py", line 226, in execute
+    pedidos = self._fetch_pedidos_list(page)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ALANO\Documents\Embarcadero\Studio\Migradores\Migrador_Bling_py\pedidos_venda_migrator.py", line 29, in _fetch_pedidos_list
+    response = self.api.request(endpoint)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ALANO\Documents\Embarcadero\Studio\Migradores\Migrador_Bling_py\core.py", line 109, in request
+    raise PermissionError(
+PermissionError: Token de acesso inválido (HTTP 401). Não foi possível renovar automaticamente. Verifique BLING_REFRESH_TOKEN no .env.
+
