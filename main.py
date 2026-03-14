@@ -4,11 +4,15 @@ import traceback
 from core import BlingAPI, Database
 from migrator import ContatosMigrator
 from produtos_migrator import ProdutosMigrator
+<<<<<<< HEAD
 from pedidos_venda_migrator import PedidosVendaMigrator
 from vendedores_migrator import VendedoresMigrator
 from contas_receber_migrator import ContasReceberMigrator
 from formas_pagamento_migrator import FormasPagamentoMigrator
 from notas_fiscais_migrator import NotasFiscaisMigrator
+=======
+from pedidos_migrator import PedidosMigrator
+>>>>>>> ca81111f8c4b6a9f3ecbc0d3692c836ccd60e36c
 
 # Classe da janela principal
 class App(ctk.CTk):
@@ -68,6 +72,7 @@ class App(ctk.CTk):
         self.btn_produtos = ctk.CTkButton(self.sidebar_frame, text="📦 Migrar Produtos", command=self.on_migrate_produtos, state="disabled")
         self.btn_produtos.pack(fill="x", padx=20, pady=10)
         
+<<<<<<< HEAD
         self.btn_pedidos = ctk.CTkButton(self.sidebar_frame, text="🛒 Migrar Pedidos Venda", command=self.on_migrate_pedidos, state="disabled")
         self.btn_pedidos.pack(fill="x", padx=20, pady=10)
         
@@ -85,6 +90,11 @@ class App(ctk.CTk):
         
         self.btn_pause = ctk.CTkButton(self.sidebar_frame, text="⏸ Pausar Migração", command=self.on_toggle_pause, state="disabled", fg_color="orange", text_color="black")
         self.btn_pause.pack(fill="x", padx=20, pady=10)
+=======
+        self.btn_pedidos = ctk.CTkButton(self.sidebar_frame, text="🛒 Migrar Pedidos", command=self.on_migrate_pedidos, state="disabled")
+        self.btn_pedidos.pack(fill="x", padx=20, pady=10)
+        
+>>>>>>> ca81111f8c4b6a9f3ecbc0d3692c836ccd60e36c
         # ----- ITENS DA ÁREA PRINCIPAL (Direita) -----
         # Status e Progresso
         self.lbl_status = ctk.CTkLabel(self.main_frame, text="Aguardando conexão...", font=("", 14, "bold"))
@@ -150,10 +160,13 @@ class App(ctk.CTk):
             self.btn_contatos.configure(state="normal")
             self.btn_produtos.configure(state="normal")
             self.btn_pedidos.configure(state="normal")
+<<<<<<< HEAD
             self.btn_vendedores.configure(state="normal")
             self.btn_contas_receber.configure(state="normal")
             self.btn_formas_pagamento.configure(state="normal")
             self.btn_notas_fiscais.configure(state="normal")
+=======
+>>>>>>> ca81111f8c4b6a9f3ecbc0d3692c836ccd60e36c
             self.update_status("Conectado! Pronto para migrar.")
 
         except Exception as e:
@@ -162,15 +175,16 @@ class App(ctk.CTk):
 
     def on_migrate_contatos(self):
         """Inicia a migração de contatos em thread separada."""
-        # Desabilita os botões durante a migração
-        self.btn_connect.configure(state="disabled")
         self.btn_contatos.configure(state="disabled")
         self.btn_produtos.configure(state="disabled")
         self.btn_pedidos.configure(state="disabled")
+<<<<<<< HEAD
         self.btn_vendedores.configure(state="disabled")
         self.btn_contas_receber.configure(state="disabled")
         self.btn_pause.configure(state="normal", text="⏸ Pausar Migração", fg_color="orange", text_color="black")
         self.pause_event.set()
+=======
+>>>>>>> ca81111f8c4b6a9f3ecbc0d3692c836ccd60e36c
         self.progress.set(0)
 
         # Roda em thread separada para não travar a interface
@@ -243,6 +257,7 @@ class App(ctk.CTk):
             self.after(0, lambda: self.btn_contatos.configure(state="normal"))
             self.after(0, lambda: self.btn_produtos.configure(state="normal"))
             self.after(0, lambda: self.btn_pedidos.configure(state="normal"))
+<<<<<<< HEAD
             self.after(0, lambda: self.btn_vendedores.configure(state="normal"))
             self.after(0, lambda: self.btn_contas_receber.configure(state="normal"))
             self.after(0, lambda: self.btn_formas_pagamento.configure(state="normal"))
@@ -250,10 +265,16 @@ class App(ctk.CTk):
 
     def on_migrate_pedidos(self):
         """Inicia a migração de pedidos de venda em thread separada."""
+=======
+
+    def on_migrate_pedidos(self):
+        """Inicia a migração de pedidos em thread separada."""
+>>>>>>> ca81111f8c4b6a9f3ecbc0d3692c836ccd60e36c
         self.btn_connect.configure(state="disabled")
         self.btn_contatos.configure(state="disabled")
         self.btn_produtos.configure(state="disabled")
         self.btn_pedidos.configure(state="disabled")
+<<<<<<< HEAD
         self.btn_vendedores.configure(state="disabled")
         self.btn_contas_receber.configure(state="disabled")
         self.btn_formas_pagamento.configure(state="disabled")
@@ -273,19 +294,40 @@ class App(ctk.CTk):
                 db=self.db,
                 on_progress=self._safe_progress,
                 pause_event=self.pause_event,
+=======
+        self.progress.set(0)
+
+        thread = threading.Thread(target=self._run_pedidos_migration, daemon=True)
+        thread.start()
+
+    def _run_pedidos_migration(self):
+        """Execute a migração de pedidos (roda na thread)."""
+        try:
+            migrator = PedidosMigrator(
+                api=self.api,
+                db=self.db,
+                on_progress=self._safe_progress,
+>>>>>>> ca81111f8c4b6a9f3ecbc0d3692c836ccd60e36c
             )               
             total = migrator.execute()
             self.after(0, lambda: self.log(f"🎉 Migração de Pedidos finalizada! {total} processados"))
         except Exception as e:
+<<<<<<< HEAD
             tb = traceback.format_exc()
             self.after(0, lambda e=e, tb=tb: self.log(f"❌ Erro na migração de pedidos: {e}\n{tb}"))
         finally:
             self.after(0, lambda: self._save_log_to_file("pedidos_venda.log"))
             self.after(0, lambda: self.btn_pause.configure(state="disabled"))
+=======
+            self.after(0, lambda: self.log(f"❌ Erro na migração de pedidos: {e}"))
+        finally:
+            self.after(0, lambda: self._save_log_to_file("pedidos.log"))
+>>>>>>> ca81111f8c4b6a9f3ecbc0d3692c836ccd60e36c
             self.after(0, lambda: self.btn_connect.configure(state="normal"))
             self.after(0, lambda: self.btn_contatos.configure(state="normal"))
             self.after(0, lambda: self.btn_produtos.configure(state="normal"))
             self.after(0, lambda: self.btn_pedidos.configure(state="normal"))
+<<<<<<< HEAD
             self.after(0, lambda: self.btn_vendedores.configure(state="normal"))
             self.after(0, lambda: self.btn_contas_receber.configure(state="normal"))
             self.after(0, lambda: self.btn_formas_pagamento.configure(state="normal"))
@@ -462,6 +504,8 @@ class App(ctk.CTk):
             self.after(0, lambda: self.btn_contas_receber.configure(state="normal"))
             self.after(0, lambda: self.btn_formas_pagamento.configure(state="normal"))
             self.after(0, lambda: self.btn_notas_fiscais.configure(state="normal"))
+=======
+>>>>>>> ca81111f8c4b6a9f3ecbc0d3692c836ccd60e36c
 
     def _save_log_to_file(self, filename: str):
         """Salva o conteúdo da caixa de texto do log na pasta logs."""
